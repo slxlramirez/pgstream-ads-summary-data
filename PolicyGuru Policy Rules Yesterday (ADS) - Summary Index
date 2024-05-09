@@ -4,4 +4,4 @@ index="policyguru_data" resourceId="enum*" disposition.disposition=*
 | eval aggregated_stat="policyguru_rules"
 | rename disposition.disposition as disposition
 | bin _time span=1d
-| sistats count by _time id disposition rule
+| sistats count by _time id disposition rule aggregated_stat
