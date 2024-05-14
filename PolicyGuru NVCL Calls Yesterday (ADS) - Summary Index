@@ -1,0 +1,21 @@
+
+index="policyguru_data" resourceId="enum*" [
+| search index="policyguru_data" resourceId="enum*" "INBOUND"
+[
+| inputlookup pg_directory_listings.csv
+| search lists="*NVCL*"
+| fields number
+| rename number as "connections{}.left.facets{}.number"
+| format
+]
+| fields guid ]
+| stats values("connections{}.left.facets{}.number") as sourcenumber
+        values("disposition.disposition") as disposition
+        values(timestamp) as timestamp
+        by guid
+| eval timestamp = mvindex(timestamp, 0)
+| eval _time=(timestamp/1000)
+| bin _time span=1d
+| fields _time sourcenumber disposition
+| sistats count by _time sourcenumber disposition
+ 
