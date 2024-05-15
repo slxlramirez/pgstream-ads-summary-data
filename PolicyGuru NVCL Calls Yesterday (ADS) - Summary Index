@@ -1,21 +1,16 @@
-
-index="policyguru_data" resourceId="enum*" [
-| search index="policyguru_data" resourceId="enum*" "INBOUND"
-[
-| inputlookup pg_directory_listings.csv
-| search lists="*NVCL*"
-| fields number
-| rename number as "connections{}.left.facets{}.number"
-| format
-]
-| fields guid ]
+index="policyguru_data" resourceId="enum*"
 | stats values("connections{}.left.facets{}.number") as sourcenumber
         values("disposition.disposition") as disposition
+        values(meta) as direction
         values(timestamp) as timestamp
         by guid
+| search direction="*INBOUND"
+| rex field=sourcenumber "\+(?<cc>\d)(?<npa>\d\d\d)(?<nxx>\d+)"
+| rename cc as "Country Code" npa as "Area Code" nxx as "Local Number"
+| lookup securelogix_nhcl.csv "Country Code" "Area Code" "Local Number" OUTPUT "Last Name" as "category"
+| search category=*
 | eval timestamp = mvindex(timestamp, 0)
 | eval _time=(timestamp/1000)
 | bin _time span=1d
-| fields _time sourcenumber disposition
-| sistats count by _time sourcenumber disposition
- 
+| fields _time sourcenumber category disposition
+| sistats count by _time sourcenumber category disposition
