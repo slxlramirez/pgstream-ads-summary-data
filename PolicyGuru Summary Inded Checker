@@ -1,0 +1,2 @@
+index=scheduler "*Summary Index" NOT "Daily Check" status="success"
+| table _time alert_actions result_count run_time savedsearch_name status suppressed
