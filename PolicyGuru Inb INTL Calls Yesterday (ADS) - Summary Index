@@ -1,0 +1,7 @@
+index="policyguru_data" resourceId="enum*" "INBOUND" NOT "connections{}.left.facets{}.country"="United States"
+| rename "connections{}.left.facets{}.country" as sourcecountry "connections{}.left.facets{}.number" as sourcenumber
+| table _time sourcecountry sourcenumber
+| eval sourcecountry=mvdedup(sourcecountry)
+| eval sourcenumber=mvdedup(sourcenumber)
+| bin _time span=1d
+| stats count by _time sourcecountry
