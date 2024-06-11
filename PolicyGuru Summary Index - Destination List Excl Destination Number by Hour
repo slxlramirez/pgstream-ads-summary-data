@@ -1,0 +1,24 @@
+index="policyguru_data" resourceId="enum*" ([| dbxquery
+connection="ngp_connection"
+timeout=1800 query="
+SELECT  distinct a.value
+FROM    master.listing a INNER JOIN master.listinggroup b ON a.listinggroupid=b.id
+WHERE   b.name = '103_Agent_Specific_Destinations_PN'
+" shortnames=t
+| rename value as "connections{}.right.facets{}.number"
+| format] OR disposition.disposition=*)
+| stats
+values("connections{}.right.facets{}.number") as destinationnumber
+values("meta") as meta
+values("id") as policyrule
+values("disposition.disposition") as disposition
+values("timestamp") as timestamp
+by guid
+| search meta="*INBOUND*"
+| lookup pg_directory_listings.csv number AS destinationnumber OUTPUT lists
+| search lists="*103_Agent_Specific_Destinations_PN*"
+| eval timestamp = mvindex(timestamp, 0)
+| eval _time=(timestamp/1000)
+| bin _time span=1h
+| fields _time policyrule disposition
+| sistats count by _time policyrule disposition
