@@ -1,0 +1,18 @@
+index="policyguru_data" resourceId="enum*" "INBOUND" [| dbxquery
+connection="ngp_connection"
+timeout=1800 query="
+SELECT  distinct a.value
+FROM    master.listing a INNER JOIN master.listinggroup b ON a.listinggroupid=b.id
+WHERE   b.name = '103_Agent_Specific_Destinations_PN'
+" shortnames=t
+| rename value as "connections{}.right.facets{}.number"
+| format]
+| stats
+values("connections{}.right.facets{}.number") as destinationnumber
+values("timestamp") as timestamp
+by guid
+| eval timestamp = mvindex(timestamp, 0)
+| eval _time=(timestamp/1000)
+| bin _time span=1d
+| fields _time destinationnumber
+| sistats count by _time destinationnumber
