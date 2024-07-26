@@ -1,0 +1,7 @@
+index="policyguru_data" resourceId="enum*" ("INBOUND" OR "TERMINATED")
+| stats values(connections{}.left.facets{}.number) as sourcenumber values(disposition.disposition) as disposition values(meta) as direction values("id") as policyrule by guid
+| search disposition="TERMINATED"
+| search direction="*INBOUND*"
+| fields _time sourcenumber policyrule
+| sistats count by sourcenumber policyrule
+| eval _time=relative_time(now(),"-1d@d")
