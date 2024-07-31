@@ -1,0 +1,7 @@
+index="policyguru_data" resourceId="enum*" "OUTBOUND" NOT "connections{}.right.facets{}.country"="United States"
+| rename "connections{}.right.facets{}.country" as destinationcountry "connections{}.right.facets{}.number" as destinationnumber
+| table _time destinationcountry destinationnumber
+| eval destinationcountry=mvdedup(destinationcountry)
+| eval destinationnumber=mvdedup(destinationnumber)
+| bin _time span=1d
+| sistats count by _time destinationcountry
