@@ -1,6 +1,11 @@
-index="policyguru_data" resourceId="enum*" disposition.disposition=*
-| rex field=id "\|(?<rule>.*).rdslr"
-| eval rule = CASE(isnull(rule) AND id="noguid_allow_case","noguid_allow_case",1=1,rule)
-| rename disposition.disposition as disposition
+index="policyguru_data" resourceId="enum*"
+| stats values(disposition.disposition) as disposition values(meta) as meta values("id") as policyrule values("timestamp") as timestamp by guid
+| rex field=policyrule "\|(?<rule>.*).rdslr"
+| eval rule = CASE(isnull(rule) AND policyrule="noguid_allow_case","noguid_allow_case",1=1,rule)
+| eval timestamp=mvindex(timestamp,0)
+| eval _time=(timestamp/1000)
+| rex field=meta "direction:(?<direction>.*)"
 | bin _time span=15m
-| sistats count by _time id disposition rule
+| sistats count by _time direction policyrule rule disposition
+| fields - guid, meta, timestamp
+| sort _time policyrule rule direction disposition
