@@ -4,4 +4,4 @@ index="policyguru_data" resourceId="enum*" "INBOUND" NOT "connections{}.left.fac
 | eval sourcecountry=mvdedup(sourcecountry)
 | eval sourcenumber=mvdedup(sourcenumber)
 | bin _time span=1d
-| stats count by _time sourcecountry
+| sistats count by _time sourcecountry
