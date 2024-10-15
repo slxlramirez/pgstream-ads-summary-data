@@ -1,17 +1,17 @@
 index="policyguru_data" resourceId="enum*" 
 | stats 
 values(connections{}.left.facets{}.number) as sourcenumber 
+values(connections{}.right.facets{}.number) as destinationnumber 
 values(disposition.disposition) as disposition 
 values(meta) as direction
 by guid 
-| stats count by sourcenumber disposition direction
+| stats count as calls dc(destinationnumber) as spread by sourcenumber disposition direction
 | search disposition="ALLOWED"
 | search direction="*INBOUND"
 | lookup pg_directory_listings.csv number AS "connections{}.left.facets{}.number" OUTPUT lists
 | fillnull value="No List Match" lists
 | search lists != "*Whitelist*"
-| search count > 10
-| sort 0 -count
-| rename count as calls
-| table sourcenumber calls
-| sistats sum(calls) as calls by sourcenumber
+| search calls > 10
+| sort 0 -calls
+| table sourcenumber calls spread
+| sistats sum(calls) as calls sum(spread) as spread by sourcenumber
