@@ -1,0 +1,7 @@
+index="policyguru_data" resourceId="enum*" "disposition.disposition"="TERMINATED"
+| rex field=meta "direction:(?<direction>.*)"
+| fields - meta
+| table _time guid id disposition.disposition
+| rename id as policyrule
+| rename disposition.disposition as disposition
+| outputlookup terminated_guids.csv append=true
