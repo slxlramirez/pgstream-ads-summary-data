@@ -1,0 +1,11 @@
+index="policyguru_data" resourceId="enum*"
+| stats
+values("connections{}.left.facets{}.number") as sourcenumber
+values("connections{}.right.facets{}.number") as destinationnumber
+values("meta") as meta
+values("id") as policyrule
+values("disposition.disposition") as disposition
+by guid
+| search meta="*INBOUND*"
+| search disposition="ALLOWED"
+| stats distinct_count(destinationnumber) as today_destinations count(guid) as today_calls by  sourcenumber
